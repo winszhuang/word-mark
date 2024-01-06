@@ -1,6 +1,6 @@
 import { buffer, debounceTime, filter, fromEvent, map } from 'rxjs'
 import { createApp, h, ref } from 'vue'
-import Menu from './components/Menu.vue'
+import Tooltip from './components/Tooltip.vue'
 
 const ROOT_ID = 'words_root'
 
@@ -10,12 +10,22 @@ setupRootElementStyle(rootEl)
 createApp({
   setup() {
     const word = ref('')
-    const menuPos = ref({
-      left: 0,
-      top: 0
+    const showTooltip = ref(false)
+    const tooltipPosition = ref({ left: 0, top: 0 })
+    const click$ = fromEvent(document, 'click')
+
+    const clickOutsideTooltip$ = click$.pipe(
+      filter((e) => {
+        const el = e.target as HTMLElement
+        const isTooltipEl = el.closest(`#${ROOT_ID}`)
+        return !isTooltipEl
+      })
+    )
+
+    clickOutsideTooltip$.subscribe(() => {
+      showTooltip.value = false
     })
 
-    const click$ = fromEvent(document, 'click')
     const doubleClick$ = click$.pipe(
       buffer(click$.pipe(debounceTime(250))),
       filter((clickArray) => clickArray.length === 2),
@@ -31,19 +41,22 @@ createApp({
     )
 
     doubleClick$.subscribe(({ text, event }) => {
-      const e = event as PointerEvent
-      menuPos.value = {
-        left: e.clientX,
-        top: e.clientY
-      }
+      showTooltip.value = true
       word.value = text!
+      const e = event as PointerEvent
+      tooltipPosition.value = {
+        left: e.clientX,
+        top: e.clientY + window.scrollY
+      }
     })
 
     return () =>
-      h(Menu, {
-        left: menuPos.value.left,
-        top: menuPos.value.top,
-        text: word.value
+      h(Tooltip, {
+        left: tooltipPosition.value.left,
+        top: tooltipPosition.value.top,
+        word: word.value,
+        sentence: 'just a test',
+        show: showTooltip.value
       })
   }
 }).mount(`#${ROOT_ID}`)
@@ -60,5 +73,4 @@ function setupRootElementStyle(el: HTMLElement) {
   el.style.left = '0'
   el.style.top = '0'
   el.style.zIndex = '1000'
-  el.style.backgroundColor = 'yellow'
 }
