@@ -2,5 +2,17 @@
   "manifest_version": 3,
   "name": "CRXJS Vue Vite Example",
   "version": "1.0.0",
-  "action": { "default_popup": "index.html" }
+  "action": { "default_popup": "index.html" },
+  "permissions": ["tabs"],
+  "options_page": "options.html",
+  "background": {
+    "service_worker": "src/background.ts",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content-script.ts"]
+    }
+  ]
 }
