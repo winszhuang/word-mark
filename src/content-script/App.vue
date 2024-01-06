@@ -2,6 +2,7 @@
 import { buffer, debounceTime, filter, fromEvent, map } from 'rxjs'
 import { ref } from 'vue'
 import { translate } from '../utils/google-translate'
+import { extractSentenceFromClick } from '../utils/sentence'
 import { ROOT_ID } from './constants/constants'
 import Swal from 'sweetalert2'
 import Tooltip from './components/Tooltip.vue'
@@ -51,9 +52,10 @@ doubleClick$.subscribe(async ({ text, event }) => {
   }
   word.value = {
     text: result.text,
-    sentence: result.detailed?.[0] || '',
+    sentence: extractSentenceFromClick(event as PointerEvent) || '',
     explains: result.detailed ? result.detailed : result.result || []
   }
+  console.log('word.value', word.value)
   const e = event as PointerEvent
   tooltipPosition.value = {
     left: e.clientX,
