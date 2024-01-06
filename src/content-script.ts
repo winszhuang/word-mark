@@ -1,6 +1,6 @@
-import { buffer, debounceTime, filter, fromEvent, map } from "rxjs"
-import { createApp, h, ref } from "vue"
-import Menu from "./components/Menu.vue"
+import { buffer, debounceTime, filter, fromEvent, map } from 'rxjs'
+import { createApp, h, ref } from 'vue'
+import Menu from './components/Menu.vue'
 
 const ROOT_ID = 'words_root'
 
@@ -15,20 +15,20 @@ createApp({
       top: 0
     })
 
-    const click$ = fromEvent(document, 'click');
+    const click$ = fromEvent(document, 'click')
     const doubleClick$ = click$.pipe(
       buffer(click$.pipe(debounceTime(250))),
-      filter(clickArray => clickArray.length === 2),
-      map(clickArray => {
-        const selectedText = window.getSelection()?.toString() || '';
-        const cleanText = selectedText.replace(/[^a-zA-Z\s]/g, '');
+      filter((clickArray) => clickArray.length === 2),
+      map((clickArray) => {
+        const selectedText = window.getSelection()?.toString() || ''
+        const cleanText = selectedText.replace(/[^a-zA-Z\s]/g, '')
         return {
           text: cleanText.trim().length > 0 ? cleanText : null,
-          event: clickArray[1]  // 第二次點擊的事件
-        };
+          event: clickArray[1] // 第二次點擊的事件
+        }
       }),
-      filter(result => result.text !== null)
-    );
+      filter((result) => result.text !== null)
+    )
 
     doubleClick$.subscribe(({ text, event }) => {
       const e = event as PointerEvent
@@ -37,16 +37,16 @@ createApp({
         top: e.clientY
       }
       word.value = text!
-    });
-
-    return () => h(Menu, {
-      left: menuPos.value.left,
-      top: menuPos.value.top,
-      text: word.value
     })
+
+    return () =>
+      h(Menu, {
+        left: menuPos.value.left,
+        top: menuPos.value.top,
+        text: word.value
+      })
   }
-})
-.mount(`#${ROOT_ID}`)
+}).mount(`#${ROOT_ID}`)
 
 function createRootElement(id: string) {
   const root = document.createElement('div')
