@@ -52,7 +52,7 @@ doubleClick$.subscribe(async ({ text, event }) => {
   }
   word.value = {
     text: result.text,
-    sentence: extractSentenceFromClick(event as PointerEvent) || '',
+    sentence: extractSentenceFromClick(event.target as HTMLElement) || '',
     explains: result.detailed ? result.detailed : result.result || []
   }
   console.log('word.value', word.value)
