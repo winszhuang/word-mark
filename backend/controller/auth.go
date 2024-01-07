@@ -2,15 +2,15 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
+	"word-mark/service"
 )
 
 type AuthController struct {
-	db *gorm.DB
+	srv service.IAuthService
 }
 
-func NewAuthController(db *gorm.DB) *AuthController {
-	return &AuthController{db: db}
+func NewAuthController(srv service.IAuthService) *AuthController {
+	return &AuthController{srv: srv}
 }
 
 func (a *AuthController) Register(c *gin.Context) {

@@ -9,6 +9,7 @@ import (
 	"word-mark/config"
 	"word-mark/controller"
 	"word-mark/model"
+	"word-mark/service"
 )
 
 var (
@@ -44,12 +45,15 @@ func initDB() {
 	if err != nil {
 		log.Fatalf("connect error: %v\n", err)
 	}
+
 	fmt.Println("資料庫初始化結束")
 }
 
 func initHandler() {
 	// #NOTICE 先不抽service和repository
-	AuthController = controller.NewAuthController(DB)
+	AuthController = controller.NewAuthController(
+		service.NewAuthService(DB),
+	)
 	// add more controller
 
 }
