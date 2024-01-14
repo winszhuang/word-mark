@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/docker/docker/api/types/container"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
-	testcontainermysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -14,15 +14,13 @@ import (
 	"log"
 	"strconv"
 	"testing"
-	"time"
 )
 
 var (
-	MysqlSuite *MysqlTestSuite
+	MysqlSuite = &MysqlTestSuite{}
 )
 
 func InitMySql() {
-	MysqlSuite = &MysqlTestSuite{}
 	MysqlSuite.SetupSuite()
 }
 
@@ -40,14 +38,14 @@ func TeardownMySql() {
 
 type MysqlTestSuite struct {
 	suite.Suite
-	dbUser         string
-	dbPassword     string
-	dbName         string
-	dbHost         string
-	dbPort         string
-	sqlDB          *sql.DB
-	mySQLContainer *testcontainermysql.MySQLContainer
-	ctx            context.Context
+	dbUser     string
+	dbPassword string
+	dbName     string
+	dbHost     string
+	dbPort     string
+	sqlDB      *sql.DB
+	mysqlC     testcontainers.Container
+	ctx        context.Context
 }
 
 func (suite *MysqlTestSuite) initMySQLConfig() {
@@ -60,29 +58,37 @@ func (suite *MysqlTestSuite) SetupSuite() {
 	// https://golang.testcontainers.org/modules/mysql/
 	suite.initMySQLConfig()
 	suite.ctx = context.Background()
-	mySQLContainer, err := testcontainermysql.RunContainer(
-		suite.ctx,
-		testcontainers.WithImage("mysql:8"),
-		testcontainermysql.WithUsername(suite.dbUser),
-		testcontainermysql.WithPassword(suite.dbPassword),
-		testcontainermysql.WithDatabase(suite.dbName),
-		testcontainers.WithWaitStrategy(
-			wait.ForLog("mysqld: ready for connections.").
-				WithOccurrence(2).
-				WithStartupTimeout(2*time.Minute),
-		),
-	)
 
+	c, err := testcontainers.GenericContainer(suite.ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: testcontainers.ContainerRequest{
+			Image:        "mysql:latest",
+			ExposedPorts: []string{"3306/tcp"},
+			WaitingFor:   wait.ForListeningPort("3306/tcp"),
+			Name:         "tc_mysql",
+			Env: map[string]string{
+				"MYSQL_ROOT_PASSWORD": suite.dbPassword,
+				"MYSQL_DATABASE":      suite.dbName,
+			},
+			HostConfigModifier: func(config *container.HostConfig) {
+				config.AutoRemove = false
+			},
+		},
+		Started: true,
+		Reuse:   true,
+	})
 	if err != nil {
 		log.Fatal("Failed to start mysqlDB container: ", err)
 	}
 
-	suite.dbHost, err = mySQLContainer.Host(suite.ctx)
+	suite.mysqlC = c
+
+	host, err := suite.mysqlC.Host(suite.ctx)
 	if err != nil {
 		log.Fatal("Failed to get mysqlDB container host: ", err)
 	}
-	mappedPort, _ := mySQLContainer.MappedPort(suite.ctx, "3306/tcp")
-	suite.mySQLContainer = mySQLContainer
+	suite.dbHost = host
+
+	mappedPort, _ := suite.mysqlC.MappedPort(suite.ctx, "3306/tcp")
 	suite.dbPort = strconv.Itoa(mappedPort.Int())
 
 	if err != nil {
@@ -108,7 +114,7 @@ func (suite *MysqlTestSuite) TearDownSuite() {
 	if err != nil {
 		log.Fatal("Failed to close mysqlDB: ", err)
 	}
-	err = suite.mySQLContainer.Terminate(suite.ctx)
+	err = suite.mysqlC.Terminate(suite.ctx)
 	if err != nil {
 		panic(err)
 	}
