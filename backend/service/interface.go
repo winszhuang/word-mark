@@ -15,6 +15,6 @@ type LoginRequest struct {
 }
 
 type IAuthService interface {
-	Register(c context.Context, req RegisterRequest) (interface{}, error)
-	Login(c context.Context, req LoginRequest) (interface{}, error)
+	Register(c context.Context, req RegisterRequest) error
+	Login(c context.Context, req LoginRequest) (LoginResponse, error)
 }

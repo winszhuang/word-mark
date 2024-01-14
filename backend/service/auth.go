@@ -47,6 +47,35 @@ func (a *AuthService) Register(c context.Context, req RegisterRequest) error {
 	return nil
 }
 
-func (a *AuthService) Login(c context.Context, req LoginRequest) (interface{}, error) {
-	return nil, errors.New("implement me")
+type LoginResponse struct {
+	Token string `json:"token"`
+}
+
+func (a *AuthService) Login(c context.Context, req LoginRequest) (LoginResponse, error) {
+	// 較驗username或者password是否為空
+	if req.Username == "" || req.Password == "" {
+		return LoginResponse{}, errors.New("帳號或密碼不得為空")
+	}
+
+	// 判斷username是否已取過
+	var user model.User
+	if err := a.db.Table("users").Where("user_name = ?", req.Username).Find(&user).Error; err != nil {
+		return LoginResponse{}, fmt.Errorf("帳號不存在: %v", err)
+	}
+
+	// db取user, 判斷密碼是否正確
+	if err := utils.CheckPasswordHash(user.Password, req.Password); err != nil {
+		return LoginResponse{}, fmt.Errorf("密碼錯誤: %v", err)
+	}
+
+	// 產生token
+	token, err := utils.CreateJWT(map[string]string{
+		"user_name": user.Username,
+		"user_id":   user.ID,
+	})
+	if err != nil {
+		return LoginResponse{}, fmt.Errorf("產生token失敗: %v", err)
+	}
+
+	return LoginResponse{Token: token}, nil
 }
