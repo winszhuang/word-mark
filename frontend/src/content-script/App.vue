@@ -6,12 +6,13 @@ import { extractSentenceFromClick } from '../utils/sentence'
 import { ROOT_ID } from './constants/constants'
 import Swal from 'sweetalert2'
 import Tooltip from './components/Tooltip.vue'
+import { useWords } from '../composables/use-words'
 
+const { wordHandler } = useWords()
 const word = ref<Word>({ text: '', sentence: '', explains: [] })
 const showTooltip = ref(false)
 const tooltipPosition = ref({ left: 0, top: 0 })
 const click$ = fromEvent(document, 'click')
-
 const clickOutsideTooltip$ = click$.pipe(
   filter((e) => {
     const el = e.target as HTMLElement
@@ -31,11 +32,10 @@ const doubleClick$ = click$.pipe(
     const selectedText = window.getSelection()?.toString() || ''
     const cleanText = selectedText.replace(/[^a-zA-Z\s]/g, '')
     return {
-      text: cleanText.trim().length > 0 ? cleanText : null,
+      text: cleanText.trim(),
       event: clickArray[1] // 第二次點擊的事件
     }
-  }),
-  filter((result) => result.text !== null)
+  })
 )
 
 doubleClick$.subscribe(async ({ text, event }) => {
@@ -54,22 +54,13 @@ doubleClick$.subscribe(async ({ text, event }) => {
     sentence: extractSentenceFromClick(event.target as HTMLElement) || '',
     explains: result.detailed ? result.detailed : result.result || []
   }
-  console.log('word.value', word.value)
   const e = event as PointerEvent
-  tooltipPosition.value = {
-    left: e.clientX,
-    top: e.clientY + window.scrollY
-  }
+  tooltipPosition.value = { left: e.clientX, top: e.clientY + window.scrollY }
   showTooltip.value = true
 })
 
 const onSave = (word: Word) => {
-  Swal.fire({
-    title: 'Save Word Success!',
-    text: `you save the word [${word.text}] success!`,
-    icon: 'success',
-    confirmButtonText: 'confirm'
-  })
+  wordHandler.add(word)
 }
 </script>
 
