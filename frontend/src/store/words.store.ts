@@ -1,47 +1,59 @@
-import { SuccessResp, ErrorResp, Resp } from '../utils/resp'
+type WordMap = Record<string, Word>
 
-interface IWordStore {
-  add(word: Word): Resp<boolean | null>
-  get(text: string): Resp<Word | null>
-  delete(text: string): Resp<boolean | null>
+interface IWordRepository {
+  add(word: Word): Promise<boolean>
+  get(text: string): Promise<Word | null>
+  getAll(): Promise<WordMap>
+  delete(text: string): Promise<boolean>
 }
 
-export class WordStore implements IWordStore {
-  private words: Record<string, Word> = {}
+const WORD_STORE_KEY = 'words'
+
+export class WordStore implements IWordRepository {
+  private chromeStorage = chrome.storage.local
+  private wordMap: WordMap = {}
 
   constructor() {
-    this.words = JSON.parse(localStorage.getItem('words') || '{}')
+    this.getAll().then((data) => {
+      this.wordMap = data
+    })
   }
 
-  private update(word: Word) {
-    this.words[word.text] = word
-    this.syncToLocalStorage()
+  syncToStorage() {
+    return this.chromeStorage.set({
+      [WORD_STORE_KEY]: this.wordMap
+    })
   }
 
-  private syncToLocalStorage() {
-    localStorage.setItem('words', JSON.stringify(this.words))
-  }
-
-  add(word: Word): Resp<boolean | null> {
-    if (this.words[word.text]) {
-      return new ErrorResp('word already exists')
+  async getAll() {
+    const { words } = (await this.chromeStorage.get(WORD_STORE_KEY)) as {
+      words: WordMap
     }
-    this.update(word)
-    return new SuccessResp(true, 'word added successfully')
+    return words ?? {}
   }
 
-  get(text: string): Resp<Word | null> {
-    if (!this.words[text]) {
-      return new ErrorResp('word not found')
-    }
-    return new SuccessResp(this.words[text], 'find word successfully')
+  async add(word: Word) {
+    if (this.wordMap[word.text]) return false
+    this.wordMap[word.text] = word
+    await this.syncToStorage()
+    return true
   }
 
-  delete(text: string): Resp<boolean | null> {
-    if (!this.words[text]) {
-      return new ErrorResp('word not found')
+  async delete(text: string) {
+    if (!this.wordMap[text]) {
+      return false
     }
+    delete this.wordMap[text]
+    await this.syncToStorage()
+    return true
+  }
 
-    return new SuccessResp(true, 'delete word successfully')
+  get(text: string): Promise<Word | null> {
+    return new Promise((resolve) => {
+      if (!this.wordMap[text]) {
+        return resolve(null)
+      }
+      resolve(this.wordMap[text])
+    })
   }
 }

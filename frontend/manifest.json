@@ -3,7 +3,7 @@
   "name": "CRXJS Vue Vite Example",
   "version": "1.0.0",
   "action": { "default_popup": "index.html" },
-  "permissions": ["tabs"],
+  "permissions": ["tabs", "storage"],
   "options_page": "options.html",
   "background": {
     "service_worker": "src/background.ts",

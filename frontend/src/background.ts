@@ -3,3 +3,10 @@ chrome.runtime.onInstalled.addListener(() => {
     url: 'options.html'
   })
 })
+
+chrome.storage.local.onChanged.addListener(async (change) => {
+  // use for testing
+  console.warn('此次storage的更新 : ')
+  console.warn(change)
+  console.warn('此次storage的更新 ---')
+})
