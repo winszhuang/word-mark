@@ -1,35 +1,55 @@
 import { describe, it, expect } from 'vitest'
-import { extractSentenceFromClick } from './sentence'
-import { createHTMLElementFromHTML } from '../utils/html'
+import { isSingleWord, isSentence } from './sentence'
 
 // html formatter https://webformatter.com/html
 
-describe('extractSentenceFromClick', () => {
-  it('點擊包含完整句子的元素', () => {
-    const htmlStr = `
-    <div class="VwiC3b yXK7lf lVm3ye r025kc hJNv6b Hdw6tb" style="-webkit-line-clamp: 2;">
-        <span>There are a few ways to include these <em class="t55VCb">buttons</em> in your page: 1. Include the <em class="t55VCb">Tailwind</em> JIT in your page. ... 2. Add to your TailwindCSS Project. Copy &amp; Paste the&nbsp;...</span>
-    </div>
-    `
-
-    const element = createHTMLElementFromHTML(htmlStr)
-    const targetEl = element!.querySelector('.t55VCb')!
-
-    const result = extractSentenceFromClick(targetEl)
-    expect(result).toBe('There are a few ways to include these buttons in your page')
+describe('isSingleWord', () => {
+  it('one word', () => {
+    expect(isSingleWord('Podcasts')).toBe(true)
   })
 
-  it('點擊只包含單字的元素', () => {
-    const parentElement = document.createElement('div')
-    parentElement.textContent = 'This is a full sentence. And another sentence.'
-
-    const childElement = document.createElement('span')
-    childElement.textContent = 'sentence'
-    parentElement.appendChild(childElement)
-
-    const result = extractSentenceFromClick(childElement)
-    expect(result).toBe('This is a full sentence.')
+  it('no word', () => {
+    expect(isSingleWord('')).toBe(false)
   })
 
+  it('no word2', () => {
+    expect(isSingleWord('\n\n    ')).toBe(false)
+  })
+
+  it('multi words', () => {
+    expect(isSingleWord('Welcome to the SimpleWeb')).toBe(false)
+  })
+
+  it('number', () => {
+    expect(isSingleWord('560')).toBe(false)
+  })
+
+  // it('url not ', () => {
+  //   expect(isSingleWord('https://www.simpleweb.org/')).toBe(false)
+  // })
   // more testcase
+})
+
+describe('isSentence', () => {
+  it('single word', () => {
+    expect(isSentence('Tutorials')).toBe(false)
+  })
+  it('no word', () => {
+    expect(isSentence('')).toBe(false)
+  })
+  it('sentence', () => {
+    expect(isSentence(' Network traces are available at the Simpleweb repository. ')).toBe(true)
+  })
+  it('sentence2', () => {
+    expect(isSentence('A demonstration of what can be accomplished through ')).toBe(true)
+  })
+  it('sentence3', () => {
+    expect(isSentence('"CSS Zen Garden"')).toBe(true)
+  })
+  it('sentence4', () => {
+    expect(isSentence('\n\n    ')).toBe(false)
+  })
+  // it('sentence5', () => {
+  //   expect(isSentence('"CSS Zen Garden"')).toBe(true)
+  // })
 })

@@ -10,6 +10,22 @@ export function extractSentenceFromClick(targetElement: Element): string {
   return element.textContent || ''
 }
 
-function isSingleWord(input: string): boolean {
-  return /^\S+$/.test(input)
+export function isSingleWord(input: string): boolean {
+  input = input.trim()
+  return /^[A-Za-z]+$/.test(input)
+}
+
+export function isSentence(str: string): boolean {
+  str = str.trim()
+  const chunks = str.split(' ')
+  if (chunks.length <= 1) {
+    return false
+  }
+
+  for (const chunk of chunks) {
+    if (!isSingleWord(chunk.trim())) {
+      return false
+    }
+  }
+  return true
 }

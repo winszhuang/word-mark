@@ -8,7 +8,7 @@ import Swal from 'sweetalert2'
 
 export function useTooltip() {
   const { wordHandler } = useWords()
-  const word = ref<Word>({ text: '', sentence: '', explains: [] })
+  const currentWord = ref<Word>({ text: '', sentence: '', explains: [] })
   const showTooltip = ref(false)
   const tooltipPosition = ref({ left: 0, top: 0 })
   const click$ = fromEvent(document, 'click')
@@ -48,7 +48,7 @@ export function useTooltip() {
       })
       return
     }
-    word.value = {
+    currentWord.value = {
       text: result.text,
       sentence: extractSentenceFromClick(event.target as HTMLElement) || '',
       explains: result.detailed ? result.detailed : result.result || []
@@ -65,7 +65,7 @@ export function useTooltip() {
   return {
     tooltipPosition,
     showTooltip,
-    word,
+    currentWord,
     onSave
   }
 }

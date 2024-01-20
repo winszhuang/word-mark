@@ -23,6 +23,9 @@ export function useWords() {
         confirmButtonText: 'confirm'
       })
     },
+    getAll: async () => {
+      return wordStore.getAll()
+    },
     delete: async (text: string) => {
       const isOk = await wordStore.delete(text)
       Swal.fire({
