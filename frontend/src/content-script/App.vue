@@ -39,7 +39,6 @@ const doubleClick$ = click$.pipe(
 )
 
 doubleClick$.subscribe(async ({ text, event }) => {
-  showTooltip.value = true
   const result = await translate({ text: text! })
   if (!result) {
     Swal.fire({
@@ -61,6 +60,7 @@ doubleClick$.subscribe(async ({ text, event }) => {
     left: e.clientX,
     top: e.clientY + window.scrollY
   }
+  showTooltip.value = true
 })
 
 const onSave = (word: Word) => {

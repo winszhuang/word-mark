@@ -30,9 +30,11 @@ const emit = defineEmits(['save'])
         </li>
       </ul>
       <!-- 例句 -->
-      <div class="text-sm mb-3">{{ props.word.sentence }}</div>
+      <div class="text-sm mb-3 h-20 max-h-28 overflow-y-auto text-slate-900 shadow-inner">
+        {{ props.word.sentence }}
+      </div>
       <button
-        class="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-1 px-4 border border-blue-500 hover:border-transparent rounded"
+        class="hover:bg-blue-500 text-blue-700 hover:text-white font-semibold py-1 px-4 border border-blue-500 rounded"
         @click="$emit('save', props.word)"
       >
         save
