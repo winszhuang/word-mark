@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import Tooltip from './components/Tooltip.vue'
 import Hint from './components/Hint.vue'
-import { nextTick, onMounted, ref, shallowRef, watch } from 'vue'
+import { onMounted, ref, shallowRef, watch } from 'vue'
 import { useTooltip } from '../composables/use-tooltip'
 import { useWords } from '../composables/use-words.ts'
-import { isSentence, isSingleWord } from '../utils/sentence.ts'
-import { allLeafNodes, getTextBoundingClientRect } from '../utils/node.ts'
+import { allLeafNodes, getTextBoundingClientRects } from '../utils/node.ts'
 import { UpdateWordsMessage } from '@/types/message'
 
 const { tooltipPosition, showTooltip, currentWord, onSave } = useTooltip()
@@ -14,7 +13,7 @@ type HintInfo = {
   left: number
   top: number
   width: number
-  text: string
+  height: number
   word: Word
   isShow: boolean
 }
@@ -22,21 +21,29 @@ type HintInfo = {
 const { wordHandler } = useWords()
 const hints = ref<HintInfo[]>([])
 const words = shallowRef<Record<string, Word>>({})
-const allTextNodes = shallowRef(
-  allLeafNodes(
-    document.body,
-    (n) => isSingleWord(n.textContent || '') || isSentence(n.textContent || '')
-  )
+const allTextNodes = allLeafNodes(
+  document.body,
+  (n) => n.textContent?.trim().length !== 0 && n.nodeName !== '#comment'
 )
 
 function mountHints(wordMap: Record<string, Word>) {
-  console.log('mountHints: ', wordMap)
   hints.value = []
-  allTextNodes.value.forEach((node) => {
+  allTextNodes.forEach((node) => {
     Object.entries(wordMap).forEach(([text, word]) => {
       if (node.textContent?.includes(text) && node.parentElement) {
-        const { top, left, width } = getTextBoundingClientRect(node, text)
-        hints.value.push({ left, top: top + window.scrollY, text: '-', width, isShow: true, word })
+        const rects = getTextBoundingClientRects(node, text)
+        const nodeHints = rects.map((rect) => {
+          const { left, top, width, height } = rect
+          return {
+            left,
+            top: top + window.scrollY,
+            width,
+            height,
+            isShow: true,
+            word
+          }
+        })
+        hints.value.push(...nodeHints)
       }
     })
   })
@@ -57,11 +64,7 @@ chrome.runtime.onMessage.addListener((req: UpdateWordsMessage) => {
 })
 
 watch(words, (w) => {
-  allTextNodes.value = allLeafNodes(
-    document.body,
-    (n) => isSingleWord(n.textContent || '') || isSentence(n.textContent || '')
-  )
-  nextTick(() => mountHints(w))
+  mountHints(w)
 })
 </script>
 
@@ -77,12 +80,11 @@ watch(words, (w) => {
     <Hint
       v-for="(hint, index) in hints"
       :key="index"
-      :text="hint.text"
       :left="hint.left"
       :top="hint.top"
       :width="hint.width"
+      :height="hint.height"
       :word="hint.word"
-      @hover="(isHover) => console.log(isHover)"
       @remove-word="onRemoveWord"
     />
   </section>

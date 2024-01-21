@@ -49,6 +49,21 @@ describe('isSentence', () => {
   it('sentence4', () => {
     expect(isSentence('\n\n    ')).toBe(false)
   })
+  it('sentence5', () => {
+    expect(
+      isSentence('-based design. Select any style sheet from the list to load it into this page.')
+    ).toBe(true)
+  })
+  it('sentence6', () => {
+    expect(isSentence('\n' + '\t\t\t\t\t\t\t\tView All Designs\t\t\t\t\t\t\t')).toBe(true)
+  })
+  it('sentence6', () => {
+    expect(
+      isSentence(
+        'Littering a dark and dreary road lay the past relics of browser-specific tags, incompatible '
+      )
+    ).toBe(true)
+  })
   // it('sentence5', () => {
   //   expect(isSentence('"CSS Zen Garden"')).toBe(true)
   // })

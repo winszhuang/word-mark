@@ -20,7 +20,7 @@ const emit = defineEmits(['save'])
   >
     <div class="p-3 rounded-md shadow-sm shadow-black bg-white text-black min-w-52">
       <!-- 單字 -->
-      <h2 class="font-bold mb-1 text-lg">
+      <h2 class="font-bold mb-1 text-lg text-black">
         {{ props.word.text }}
       </h2>
       <!-- 解釋 -->

@@ -6,7 +6,7 @@ defineProps<{
   left: number
   top: number
   width: number
-  text: string
+  height: number
   word: Word
 }>()
 
@@ -20,7 +20,6 @@ const hint = ref<HTMLElement | null>(null)
 const isHover = useElementHover(hint)
 
 watch(isHover, (isHover) => {
-  console.log(isHover)
   emit('hover', isHover)
 })
 </script>
@@ -29,10 +28,20 @@ watch(isHover, (isHover) => {
   <div
     ref="hint"
     :style="{ left: left + 'px', top: top + 'px', width: width + 'px' }"
-    class="absolute underline"
+    class="absolute"
   >
-    <div style="{ background: rgba(1, 1, 1, 0.2) }"></div>
-    {{ text }}
+    <!-- 佔位 -->
+    <div
+      style="{ background: rgba(1, 1, 1, 0.2) }"
+      :style="{ height: height + 'px', maxWidth: width + 'px' }"
+    ></div>
+
+    <!-- 下滑線 -->
+    <hr class="border-red-500 absolute mb-1" style="z-index: -1" :style="{ width: width + 'px' }" />
+
+    <div style="line-height: 4px; opacity: 0">佔位用</div>
+
+    <!-- 提示框區塊 -->
     <div
       v-show="isHover"
       class="p-3 rounded-md shadow-sm shadow-black bg-white text-black min-w-52"

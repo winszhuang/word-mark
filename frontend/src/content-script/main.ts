@@ -1,11 +1,11 @@
 import { createApp } from 'vue'
-import App from './App.vue'
+import ContentScript from './ContentScript.vue'
 import { ROOT_ID } from './constants/constants'
 import '../style.css'
 
 const rootEl = createRootElement(ROOT_ID)
 setupRootElementStyle(rootEl)
-createApp(App).mount(`#${ROOT_ID}`)
+createApp(ContentScript).mount(`#${ROOT_ID}`)
 
 function createRootElement(id: string) {
   const root = document.createElement('div')
