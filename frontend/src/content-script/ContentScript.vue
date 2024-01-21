@@ -76,7 +76,7 @@ watch(words, (w) => {
     :word="currentWord"
     @save="onSave"
   />
-  <section class="absolute">
+  <section class="wds-absolute">
     <Hint
       v-for="(hint, index) in hints"
       :key="index"
@@ -88,5 +88,5 @@ watch(words, (w) => {
       @remove-word="onRemoveWord"
     />
   </section>
-  <section class="absolute"></section>
+  <section class="wds-absolute"></section>
 </template>
