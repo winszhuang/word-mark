@@ -34,7 +34,7 @@ export function getTextBoundingClientRects(node: Node, text: string) {
   let startIndex = 0
   const rects: DOMRect[] = []
   while (startIndex < textContent.length) {
-    const index = textContent.indexOf(text, startIndex)
+    const index = textContent.toLowerCase().indexOf(text, startIndex)
     if (index === -1) {
       break // No more matches
     }

@@ -24,7 +24,7 @@ watch(isHover, (isHover) => {
 })
 
 const highlightedSentenceSplit = computed(() => {
-  let parts = props.word.sentence.split(props.word.text)
+  let parts = props.word.sentence.toLowerCase().split(props.word.text)
   parts = parts.flatMap((part, index) =>
     index < parts.length - 1 ? [part, props.word.text] : [part]
   )

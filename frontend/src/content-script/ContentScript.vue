@@ -29,8 +29,12 @@ const allTextNodes = allLeafNodes(
 function mountHints(wordMap: Record<string, Word>) {
   hints.value = []
   allTextNodes.forEach((node) => {
+    const textContent = node.textContent
+    if (!textContent || textContent.length === 0) return
+
     Object.entries(wordMap).forEach(([text, word]) => {
-      if (node.textContent?.includes(text) && node.parentElement) {
+      const isTextInSentence = textContent.toLowerCase().includes(text)
+      if (isTextInSentence && node.parentElement) {
         const rects = getTextBoundingClientRects(node, text)
         const nodeHints = rects.map((rect) => {
           const { left, top, width, height } = rect
