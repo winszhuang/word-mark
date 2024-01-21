@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useElementHover } from '../../composables/use-element-hover.ts'
 
-defineProps<{
+const props = defineProps<{
   left: number
   top: number
   width: number
@@ -21,6 +21,17 @@ const isHover = useElementHover(hint)
 
 watch(isHover, (isHover) => {
   emit('hover', isHover)
+})
+
+const highlightedSentenceSplit = computed(() => {
+  let parts = props.word.sentence.split(props.word.text)
+  parts = parts.flatMap((part, index) =>
+    index < parts.length - 1 ? [part, props.word.text] : [part]
+  )
+  return parts.map((part) => ({
+    text: part,
+    isHighlight: part === props.word.text
+  }))
 })
 </script>
 
@@ -60,7 +71,12 @@ watch(isHover, (isHover) => {
       <div
         class="wds-text-sm wds-mb-3 wds-h-20 wds-max-h-28 wds-overflow-y-auto wds-text-slate-900 wds-shadow-inner"
       >
-        {{ word.sentence }}
+        <span
+          :style="{ color: sentence.isHighlight ? 'red' : '' }"
+          v-for="(sentence, index) in highlightedSentenceSplit"
+          :key="index + sentence.text"
+          >{{ sentence.text }}</span
+        >
       </div>
       <button
         class="hover:wds-bg-red-500 wds-text-red-700 hover:wds-text-white wds-font-semibold wds-py-1 wds-px-4 wds-border wds-border-red-500 wds-rounded"

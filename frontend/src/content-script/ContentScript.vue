@@ -7,7 +7,7 @@ import { useWords } from '../composables/use-words.ts'
 import { allLeafNodes, getTextBoundingClientRects } from '../utils/node.ts'
 import { UpdateWordsMessage } from '@/types/message'
 
-const { tooltipPosition, showTooltip, currentWord, onSave } = useTooltip()
+const { tooltipPosition, showTooltip, currentWord } = useTooltip()
 
 type HintInfo = {
   left: number
@@ -51,6 +51,10 @@ function mountHints(wordMap: Record<string, Word>) {
 
 function onRemoveWord(word: Word) {
   wordHandler.delete(word.text)
+}
+
+const onSave = (word: Word) => {
+  wordHandler.add(word)
 }
 
 onMounted(() => {

@@ -1,13 +1,11 @@
 import { ref } from 'vue'
 import { extractSentenceFromClick } from '../utils/sentence'
 import { translate } from '../utils/google-translate'
-import { useWords } from './use-words'
 import { buffer, debounceTime, filter, fromEvent, map } from 'rxjs'
 import { ROOT_ID } from '../content-script/constants/constants'
 import Swal from 'sweetalert2'
 
 export function useTooltip() {
-  const { wordHandler } = useWords()
   const currentWord = ref<Word>({ text: '', sentence: '', explains: [] })
   const showTooltip = ref(false)
   const tooltipPosition = ref({ left: 0, top: 0 })
@@ -29,7 +27,7 @@ export function useTooltip() {
     filter((clickArray) => clickArray.length === 2),
     map((clickArray) => {
       const selectedText = window.getSelection()?.toString() || ''
-      const cleanText = selectedText.replace(/[^a-zA-Z\s]/g, '')
+      const cleanText = selectedText.replace(/[^a-zA-Z\s]/g, '').toLowerCase()
       return {
         text: cleanText.trim(),
         event: clickArray[1] // 第二次點擊的事件
@@ -58,14 +56,9 @@ export function useTooltip() {
     showTooltip.value = true
   })
 
-  const onSave = (word: Word) => {
-    wordHandler.add(word)
-  }
-
   return {
     tooltipPosition,
     showTooltip,
-    currentWord,
-    onSave
+    currentWord
   }
 }
