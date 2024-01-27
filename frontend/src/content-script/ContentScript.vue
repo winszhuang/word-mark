@@ -6,6 +6,7 @@ import { useTooltip } from '../composables/use-tooltip'
 import { useWords } from '../composables/use-words.ts'
 import { useChromeMessage } from '../composables/use-chrome-message'
 import { allLeafNodes, getTextBoundingClientRects } from '../utils/node.ts'
+import Swal from 'sweetalert2'
 
 const { tooltipPosition, showTooltip, currentWord } = useTooltip()
 
@@ -18,7 +19,7 @@ type HintInfo = {
   isShow: boolean
 }
 
-const { wordHandler } = useWords()
+const wordStore = useWords()
 const hints = ref<HintInfo[]>([])
 const words = shallowRef<Record<string, Word>>({})
 const allTextNodes = allLeafNodes(
@@ -53,26 +54,47 @@ function mountHints(wordMap: Record<string, Word>) {
   })
 }
 
-function onRemoveWord(word: Word) {
-  wordHandler.delete(word.text)
+async function onRemoveWord(word: Word) {
+  const isSuccess = await wordStore.delete(word.text)
+  Swal.fire({
+    title: '刪除單字',
+    text: isSuccess ? '刪除成功' : '刪除失敗',
+    icon: isSuccess ? 'success' : 'error',
+    confirmButtonText: '確認'
+  })
 }
 
-const onSave = (word: Word) => {
-  wordHandler.add(word)
+async function onSave(word: Word) {
+  const isSuccess = await wordStore.add(word)
+  Swal.fire({
+    title: '新增單字',
+    text: isSuccess ? '新增單字成功' : '新增單字失敗',
+    icon: isSuccess ? 'success' : 'error',
+    confirmButtonText: '確認'
+  })
 }
 
 onMounted(() => {
-  wordHandler.getAll().then((w) => {
+  wordStore.getAll().then((w) => {
     words.value = w
   })
 })
 
-const { onWordsUpdate, onRenderNotify } = useChromeMessage()
+const { onWordsUpdate, onRenderNotify, onAlertNotify } = useChromeMessage()
 onWordsUpdate.subscribe((res) => {
   words.value = res.data
 })
 onRenderNotify.subscribe(() => {
   mountHints(words.value)
+})
+onAlertNotify.subscribe((res) => {
+  const { title, text, icon, confirmButtonText } = res.data
+  Swal.fire({
+    title,
+    text,
+    icon,
+    confirmButtonText
+  })
 })
 
 watch(words, (w) => {

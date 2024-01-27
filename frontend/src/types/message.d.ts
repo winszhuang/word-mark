@@ -8,3 +8,4 @@ type ChromeMessage<T> = {
 
 type UpdateWordsMessage = ChromeMessage<Record<string, Word>>
 type RenderWordsMessage = ChromeMessage<boolean>
+type AlertMessage = ChromeMessage<Alert>

@@ -1,6 +1,7 @@
 export enum Event {
   UPDATE_WORDS = 'UPDATE_WORDS',
-  RENDER_WORDS = 'RENDER_WORDS'
+  RENDER_WORDS = 'RENDER_WORDS',
+  ALERT = 'ALERT'
 }
 
 export enum EventSource {

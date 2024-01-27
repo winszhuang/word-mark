@@ -3,30 +3,42 @@ import { useChromeMessage } from '../../src/composables/use-chrome-message'
 import WButton from '../../src/components/WButton.vue'
 import { onMounted, shallowRef } from 'vue'
 import { useWords } from '../../src/composables/use-words'
-import { useChrome } from '../../src/composables/use-chrome'
-import { RenderWordsMessage } from '@/types/message'
-import { Event, EventSource } from '../../src/enums/event.enum.ts'
-
-const words = shallowRef<Record<string, Word>>({})
+import { RenderWordsMessage, AlertMessage } from '../types/message'
+import { Event, EventSource } from '../enums/event.enum'
+import { sendMessageToActiveTab } from '../utils/chrome'
 
 const { onWordsUpdate } = useChromeMessage()
-onWordsUpdate.subscribe((res) => (words.value = res.data))
-
-const { wordHandler } = useWords()
+const words = shallowRef<Record<string, Word>>({})
+const wordStore = useWords()
+onWordsUpdate.subscribe((res) => {
+  words.value = res.data
+})
 
 onMounted(() => {
-  wordHandler.getAll().then((w) => {
+  wordStore.getAll().then((w) => {
     words.value = w
   })
 })
 
-const { sendMessageToActiveTab } = useChrome()
 function reRender() {
-  console.log('reRender')
   sendMessageToActiveTab<RenderWordsMessage>({
     event: Event.RENDER_WORDS,
-    data: true,
-    from: EventSource.POPUP
+    from: EventSource.POPUP,
+    data: true
+  })
+}
+
+async function onRemoveWord(word: Word) {
+  const isSuccess = await wordStore.delete(word.text)
+  sendMessageToActiveTab<AlertMessage>({
+    event: Event.ALERT,
+    from: EventSource.POPUP,
+    data: {
+      title: '刪除單字',
+      text: isSuccess ? '刪除成功' : '刪除失敗',
+      icon: isSuccess ? 'success' : 'error',
+      confirmButtonText: '確認'
+    }
   })
 }
 </script>
@@ -55,7 +67,7 @@ function reRender() {
           <span class="wds-mr-auto">
             {{ word.text }}
           </span>
-          <WButton text="刪除單字" />
+          <WButton text="刪除單字" @click="onRemoveWord(word)" />
         </li>
       </ul>
     </section>
