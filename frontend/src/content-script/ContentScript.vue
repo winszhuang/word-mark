@@ -4,8 +4,8 @@ import Hint from './components/Hint.vue'
 import { onMounted, ref, shallowRef, watch } from 'vue'
 import { useTooltip } from '../composables/use-tooltip'
 import { useWords } from '../composables/use-words.ts'
+import { useChromeMessage } from '../composables/use-chrome-message'
 import { allLeafNodes, getTextBoundingClientRects } from '../utils/node.ts'
-import { UpdateWordsMessage } from '@/types/message'
 
 const { tooltipPosition, showTooltip, currentWord } = useTooltip()
 
@@ -67,8 +67,12 @@ onMounted(() => {
   })
 })
 
-chrome.runtime.onMessage.addListener((req: UpdateWordsMessage) => {
-  words.value = req.data
+const { onWordsUpdate, onRenderNotify } = useChromeMessage()
+onWordsUpdate.subscribe((res) => {
+  words.value = res.data
+})
+onRenderNotify.subscribe(() => {
+  mountHints(words.value)
 })
 
 watch(words, (w) => {
@@ -98,3 +102,4 @@ watch(words, (w) => {
   </section>
   <section class="wds-absolute"></section>
 </template>
+../composables/use-chrome-message.ts

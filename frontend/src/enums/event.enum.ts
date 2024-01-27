@@ -1,3 +1,10 @@
 export enum Event {
-  UPDATE_WORDS = 'UPDATE_WORDS'
+  UPDATE_WORDS = 'UPDATE_WORDS',
+  RENDER_WORDS = 'RENDER_WORDS'
+}
+
+export enum EventSource {
+  CONTENT_SCRIPT = 'CONTENT_SCRIPT',
+  BACKGROUND = 'BACKGROUND',
+  POPUP = 'POPUP'
 }
