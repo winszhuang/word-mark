@@ -4,6 +4,17 @@ import { ref } from 'vue'
 type Change = Record<string, chrome.storage.StorageChange>
 
 export function useChrome() {
+  const activeTabId = ref(-1)
+
+  chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs.length > 0) {
+      activeTabId.value = tabs[0].id!
+    }
+  })
+  chrome.tabs?.onActivated.addListener((tab) => {
+    activeTabId.value = tab.tabId
+  })
+
   const afterInstall$ = new Subject<void>()
   chrome.runtime.onInstalled?.addListener(() => {
     afterInstall$.next()
@@ -27,16 +38,6 @@ export function useChrome() {
         receiveActiveTabMessage$.next(req)
       }
     }
-  })
-
-  const tabChange$ = new Subject<chrome.tabs.TabActiveInfo>()
-  chrome.tabs?.onActivated.addListener((tab) => {
-    tabChange$.next(tab)
-  })
-
-  const activeTabId = ref(-1)
-  tabChange$.subscribe(({ tabId }) => {
-    activeTabId.value = tabId
   })
 
   function createTab(createProperties: chrome.tabs.CreateProperties) {
