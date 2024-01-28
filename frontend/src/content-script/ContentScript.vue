@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import Tooltip from './components/Tooltip.vue'
 import Hint from './components/Hint.vue'
-import { onMounted, ref, shallowRef, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useTooltip } from '../composables/use-tooltip'
 import { useWords } from '../composables/use-words.ts'
-import { useChromeMessage } from '../composables/use-chrome-message'
+import { useChromeMessageEvent } from '../composables/use-chrome-message'
 import { allLeafNodes, getTextBoundingClientRects } from '../utils/node.ts'
 import Swal from 'sweetalert2'
 
@@ -19,13 +19,46 @@ type HintInfo = {
   isShow: boolean
 }
 
-const wordStore = useWords()
+const { onWordsUpdate, onRenderNotify, onAlertNotify, onEnableUpdate, onTabEnableUpdate } =
+  useChromeMessageEvent()
+const { words, wordStore } = useWords(onWordsUpdate)
 const hints = ref<HintInfo[]>([])
-const words = shallowRef<Record<string, Word>>({})
 const allTextNodes = allLeafNodes(
   document.body,
   (n) => n.textContent?.trim().length !== 0 && n.nodeName !== '#comment'
 )
+
+watch(words, (w) => {
+  mountHints(w)
+})
+onRenderNotify.subscribe(() => {
+  mountHints(words.value)
+})
+onAlertNotify.subscribe((res) => {
+  const { title, text, icon, confirmButtonText } = res.data
+  Swal.fire({
+    title,
+    text,
+    icon,
+    confirmButtonText
+  })
+})
+onEnableUpdate.subscribe((res) => {
+  const isEnable = res.data
+  if (isEnable) {
+    mountHints(words.value)
+  } else {
+    hints.value = []
+  }
+})
+onTabEnableUpdate.subscribe((res) => {
+  const isEnable = res.data
+  if (isEnable) {
+    mountHints(words.value)
+  } else {
+    hints.value = []
+  }
+})
 
 function mountHints(wordMap: Record<string, Word>) {
   hints.value = []
@@ -73,33 +106,6 @@ async function onSave(word: Word) {
     confirmButtonText: '確認'
   })
 }
-
-onMounted(() => {
-  wordStore.getAll().then((w) => {
-    words.value = w
-  })
-})
-
-const { onWordsUpdate, onRenderNotify, onAlertNotify } = useChromeMessage()
-onWordsUpdate.subscribe((res) => {
-  words.value = res.data
-})
-onRenderNotify.subscribe(() => {
-  mountHints(words.value)
-})
-onAlertNotify.subscribe((res) => {
-  const { title, text, icon, confirmButtonText } = res.data
-  Swal.fire({
-    title,
-    text,
-    icon,
-    confirmButtonText
-  })
-})
-
-watch(words, (w) => {
-  mountHints(w)
-})
 </script>
 
 <template>
@@ -124,4 +130,3 @@ watch(words, (w) => {
   </section>
   <section class="wds-absolute"></section>
 </template>
-../composables/use-chrome-message.ts

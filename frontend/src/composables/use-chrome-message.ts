@@ -1,17 +1,13 @@
-import {
-  UpdateWordsMessage,
-  RenderWordsMessage,
-  ChromeMessage,
-  AlertMessage
-} from '@/types/message'
 import { Subject } from 'rxjs'
 import { Event } from '../enums/event.enum'
 import { onMessage } from '../utils/chrome'
 
-export function useChromeMessage() {
+export function useChromeMessageEvent() {
   const wordsUpdate$ = new Subject<UpdateWordsMessage>()
   const renderNotify$ = new Subject<RenderWordsMessage>()
   const alertNotify$ = new Subject<AlertMessage>()
+  const enableUpdate$ = new Subject<EnableMessage>()
+  const tabEnableUpdate$ = new Subject<EnableMessage>()
 
   onMessage((req: ChromeMessage<any>) => {
     switch (req.event) {
@@ -24,12 +20,20 @@ export function useChromeMessage() {
       case Event.ALERT:
         alertNotify$.next(req)
         break
+      case Event.GLOBAL_ENABLE:
+        enableUpdate$.next(req)
+        break
+      case Event.TAB_ENABLE:
+        tabEnableUpdate$.next(req)
+        break
     }
   })
 
   return {
     onWordsUpdate: wordsUpdate$,
     onRenderNotify: renderNotify$,
-    onAlertNotify: alertNotify$
+    onAlertNotify: alertNotify$,
+    onEnableUpdate: enableUpdate$,
+    onTabEnableUpdate: tabEnableUpdate$
   }
 }

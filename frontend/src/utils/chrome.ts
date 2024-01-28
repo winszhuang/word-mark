@@ -3,15 +3,15 @@ export async function createTab(createProperties: chrome.tabs.CreateProperties) 
   return chrome.tabs.create(createProperties)
 }
 
-export async function sendMessage<T>(req: T) {
+export async function sendMessage<T extends ChromeMessage<any>>(req: T) {
   return chrome.runtime.sendMessage<T>(req)
 }
 
-export async function sendMessageToTab<T>(tabId: number, req: T) {
+export async function sendMessageToTab<T extends ChromeMessage<any>>(tabId: number, req: T) {
   return chrome.tabs.sendMessage<T>(tabId, req)
 }
 
-export async function sendMessageToAllTabs<T>(req: T) {
+export async function sendMessageToAllTabs<T extends ChromeMessage<any>>(req: T) {
   return new Promise((resolve, reject) => {
     chrome.tabs.query({}, (tabs) => {
       // 將每個 sendMessageToTab 調用轉換為一個 Promise
@@ -22,7 +22,7 @@ export async function sendMessageToAllTabs<T>(req: T) {
   })
 }
 
-export async function sendMessageToActiveTab<T>(req: T) {
+export async function sendMessageToActiveTab<T extends ChromeMessage<any>>(req: T) {
   const activeTab = await getActiveTab()
   return sendMessageToTab<T>(activeTab.id!, req)
 }
@@ -51,8 +51,8 @@ export function onInstalled(callback: (details: chrome.runtime.InstalledDetails)
   chrome.runtime.onInstalled.addListener(callback)
 }
 
-export function onMessage(
-  callback: (message: any, sender: chrome.runtime.MessageSender, sendResponse: any) => void
+export function onMessage<T extends ChromeMessage<any>>(
+  callback: (message: T, sender: chrome.runtime.MessageSender, sendResponse: any) => void
 ) {
   chrome.runtime.onMessage.addListener(callback)
 }

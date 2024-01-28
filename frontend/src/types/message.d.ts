@@ -1,11 +1,10 @@
-import { Event, EventSource } from '../enums/event.enum.ts'
-
 type ChromeMessage<T> = {
-  event: Event
+  event: import('../enums/event.enum.ts').Event
   data: T
-  from: EventSource
+  from: import('../enums/event.enum.ts').EventSource
 }
 
 type UpdateWordsMessage = ChromeMessage<Record<string, Word>>
 type RenderWordsMessage = ChromeMessage<boolean>
 type AlertMessage = ChromeMessage<Alert>
+type EnableMessage = ChromeMessage<boolean>

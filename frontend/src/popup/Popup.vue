@@ -1,24 +1,12 @@
 <script setup lang="ts">
-import { useChromeMessage } from '../../src/composables/use-chrome-message'
+import { useChromeMessageEvent } from '../../src/composables/use-chrome-message'
 import WButton from '../../src/components/WButton.vue'
-import { onMounted, shallowRef } from 'vue'
 import { useWords } from '../../src/composables/use-words'
-import { RenderWordsMessage, AlertMessage } from '../types/message'
 import { Event, EventSource } from '../enums/event.enum'
-import { sendMessageToActiveTab } from '../utils/chrome'
+import { sendMessageToActiveTab, sendMessageToAllTabs } from '../utils/chrome'
 
-const { onWordsUpdate } = useChromeMessage()
-const words = shallowRef<Record<string, Word>>({})
-const wordStore = useWords()
-onWordsUpdate.subscribe((res) => {
-  words.value = res.data
-})
-
-onMounted(() => {
-  wordStore.getAll().then((w) => {
-    words.value = w
-  })
-})
+const { onWordsUpdate } = useChromeMessageEvent()
+const { words, wordStore } = useWords(onWordsUpdate)
 
 function reRender() {
   sendMessageToActiveTab<RenderWordsMessage>({
@@ -41,6 +29,22 @@ async function onRemoveWord(word: Word) {
     }
   })
 }
+
+function switchEnable(isEnable: boolean) {
+  sendMessageToAllTabs({
+    event: Event.GLOBAL_ENABLE,
+    data: isEnable,
+    from: EventSource.POPUP
+  })
+}
+
+function switchEnableThisPage() {
+  sendMessageToActiveTab({
+    event: Event.TAB_ENABLE,
+    data: false,
+    from: EventSource.POPUP
+  })
+}
 </script>
 
 <template>
@@ -49,9 +53,9 @@ async function onRemoveWord(word: Word) {
       <h1>Word Mark</h1>
     </header>
     <div class="wds-flex wds-gap-2">
-      <WButton text="當前網頁" class="wds-block wds-w-[60%]" />
-      <WButton text="啟用" />
-      <WButton text="停用" />
+      <WButton text="當前網頁" class="wds-block wds-w-[60%]" @click="switchEnableThisPage" />
+      <WButton text="啟用" @click="switchEnable(true)" />
+      <WButton text="停用" @click="switchEnable(false)" />
     </div>
 
     <section>
